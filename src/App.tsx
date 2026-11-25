@@ -162,7 +162,6 @@ function MovieCard({ movie, poster = false }: { movie: Movie; poster?: boolean }
   const year = movieYear(movie);
   return <article className={`nf-card${poster ? ' nf-poster' : ' nf-landscape'}`}>
     <div className="nf-card-box">
-      {rank ? <span className="nf-card-rank">{rank}</span> : null}
       <Link to={moviePath(movie)} className="nf-thumb" aria-label={`More info: ${movie.title}`}>
         {image ? <img src={image} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <span className="nf-thumb-fallback">{movie.title}</span>}
         {!poster && <span className="nf-thumb-title">{movie.title}</span>}
