@@ -1,0 +1,137 @@
+/* Crude polish pass: navigation, billboard and rows.
+   Loaded after shell.css and styles-netflix.css, so it wins on equal specificity. */
+
+/* ---------- Navigation: desktop rail ---------- */
+@media (min-width: 701px) {
+  :root { --rail: 76px; }
+  .cr-rail {
+    background: rgba(10, 10, 10, .92);
+    border-right: 1px solid rgba(255, 255, 255, .06);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    padding-top: 18px;
+  }
+  .cr-rail-links { gap: 6px; margin-top: 26px; }
+  .cr-rail-link { width: 58px; height: 56px; border-radius: 10px; }
+  .cr-rail-link.active:before {
+    content: "";
+    position: absolute;
+    left: -9px; top: 14px; bottom: 14px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #fff;
+  }
+}
+.cr-rail-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.cr-rail-link:hover, .cr-rail-link.active { background: rgba(255, 255, 255, .1); }
+.cr-rail-link:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.cr-rail-label { font-size: 10.5px; font-weight: 600; line-height: 1; letter-spacing: .01em; }
+
+/* ---------- Navigation: top bar ---------- */
+.cr-topbar {
+  background: linear-gradient(180deg, rgba(10, 10, 10, .72), transparent);
+  border-bottom: 1px solid transparent;
+  transition: background-color .25s, border-color .25s;
+}
+.cr-topbar.scrolled {
+  background: rgba(20, 20, 20, .88);
+  border-bottom-color: rgba(255, 255, 255, .07);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.cr-topbar-inner { justify-content: flex-end; }
+.cr-search-wrap { width: min(280px, 60vw); transition: width .25s ease; }
+.cr-search-wrap:focus-within { width: min(440px, 70vw); }
+.cr-top-search { background: rgba(20, 20, 20, .7); border-color: rgba(255, 255, 255, .22); }
+
+/* ---------- Billboard ---------- */
+.nf-billboard { height: clamp(480px, 82vh, 860px); }
+.nf-bb-art {
+  object-position: center 20%;
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 98%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 98%);
+}
+.nf-bb-fade {
+  background:
+    linear-gradient(90deg, rgba(20, 20, 20, .92) 0, rgba(20, 20, 20, .7) 24%, rgba(20, 20, 20, .28) 48%, transparent 70%),
+    linear-gradient(180deg, rgba(10, 10, 10, .65), transparent 22%),
+    linear-gradient(0deg, #141414 0, rgba(20, 20, 20, .7) 14%, transparent 40%);
+}
+.nf-bb-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  width: min(46vw, 40rem);
+  padding-bottom: clamp(4.5rem, 9vw, 8rem);
+}
+.nf-bb-tag { margin: 0; font-size: .85rem; letter-spacing: .04em; }
+.nf-bb-title { margin: 0; font-size: clamp(2.8rem, 6.4vw, 6.2rem); text-wrap: balance; }
+.nf-bb-meta {
+  display: flex; align-items: center; flex-wrap: wrap;
+  gap: .7rem; margin: 0;
+  font-size: .95rem; color: #d6d6d6;
+}
+.nf-bb-meta b { color: #fff; font-weight: 700; }
+.nf-bb-text {
+  margin: 0; max-width: 34rem;
+  font-size: clamp(.92rem, 1.1vw, 1.08rem); line-height: 1.5; color: #e8e8e8;
+}
+.nf-bb-buttons { margin-top: .4rem; gap: .7rem; }
+.nf-bb-buttons .nf-btn { padding: .6em 1.5em; font-size: 1.05rem; }
+.nf-bb-buttons .nf-round { width: 44px; height: 44px; }
+.nf-btn { transition: background .15s, transform .15s; }
+.nf-btn:active { transform: scale(.97); }
+@media (max-width: 700px) {
+  .nf-bb-info { width: 100%; padding-bottom: 3.5rem; }
+}
+
+/* ---------- Rows ---------- */
+/* The slider scrolls horizontally, which clips hover panels vertically.
+   Padding gives the scaled card and its info panel room; negative margins cancel it out. */
+.nf-slider { padding-top: 1.8rem; padding-bottom: 6rem; margin: -1.8rem 0 -6rem; }
+.nf-row-head { position: relative; z-index: 3; }
+
+.nf-top-ten { --nf-ipp: 5; }
+.nf-ten .nf-card { flex-basis: 58%; width: 58%; }
+.nf-rank { flex-basis: 42%; font-size: clamp(5rem, 9vw, 9rem); }
+
+.nf .nf-rail-arrows button {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .08);
+  color: #d0d0d0;
+  transition: background .15s, color .15s;
+}
+.nf .nf-rail-arrows button:hover { background: rgba(255, 255, 255, .2); color: #fff; }
+@media (hover: none), (pointer: coarse) {
+  .nf-rail-arrows { display: none; }
+  .nf-slider { padding-top: 0; padding-bottom: 0; margin: 0; }
+}
+
+/* ---------- Mobile bottom bar ---------- */
+@media (max-width: 700px) {
+  .cr-rail {
+    height: 64px;
+    background: rgba(10, 10, 10, .94);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+  }
+  .cr-rail-link { width: 64px; height: 52px; }
+  .cr-rail-link.active:before {
+    content: "";
+    position: absolute;
+    left: 18px; right: 18px; top: 0;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: #fff;
+  }
+  .cr-search-wrap, .cr-search-wrap:focus-within { width: 100%; }
+  .cr-main { padding-bottom: 70px; }
+}

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { Link, Navigate, NavLink, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, Bookmark, Check, ChevronLeft, ChevronRight, Compass, Film, Flame,
-  Home, Play, Search, ThumbsUp,
+  ArrowLeft, Bookmark, Check, ChevronLeft, ChevronRight, Compass, Flame,
+  Home, Info, Play, Search, ThumbsUp,
 } from 'lucide-react';
 
 const API = '/api/v1/movies';
@@ -94,13 +94,20 @@ function Sidebar() {
   ];
   return <aside className="cr-rail" aria-label="Movies navigation">
     <Link to="/movies" className="cr-brand" aria-label="Crude Movies"><span className="cr-brand-mark">C</span></Link>
-    <nav className="cr-rail-links">{links.map(({ to, label, Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `cr-rail-link${isActive ? ' active' : ''}`} aria-label={label}><Icon size={20} strokeWidth={1.8} /><span className="cr-rail-tooltip">{label}</span></NavLink>)}</nav>
+    <nav className="cr-rail-links">{links.map(({ to, label, Icon, end }) => <NavLink key={to} to={to} end={end} className={({ isActive }) => `cr-rail-link${isActive ? ' active' : ''}`} aria-label={label}><Icon size={20} strokeWidth={1.8} /><span className="cr-rail-label">{label}</span></NavLink>)}</nav>
   </aside>;
 }
 function SearchHeader() {
   const location = useLocation();
   const navigate = useNavigate();
   const [value, setValue] = useState('');
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   useEffect(() => {
     setValue(location.pathname === '/movies/search' ? new URLSearchParams(location.search).get('q') ?? '' : '');
   }, [location.pathname, location.search]);
@@ -109,11 +116,10 @@ function SearchHeader() {
     const query = value.trim().slice(0, 120);
     navigate(query ? `/movies/search?q=${encodeURIComponent(query)}` : '/movies/search');
   };
-  return <header className="cr-topbar"><div className="cr-topbar-inner">
+  return <header className={`cr-topbar${scrolled ? ' scrolled' : ''}`}><div className="cr-topbar-inner">
     <form className="cr-search-wrap" role="search" onSubmit={submit}>
       <div className="cr-top-search"><input aria-label="Search movies" placeholder="Search movies..." maxLength={120} value={value} onChange={event => setValue(event.target.value)} /><button type="submit" className="cr-top-go" aria-label="Search"><Search size={17} /></button></div>
     </form>
-    <span className="cr-topbar-label"><Film size={16} /> MOVIES</span>
   </div></header>;
 }
 function Shell() {
@@ -173,14 +179,14 @@ function MovieCard({ movie, poster = false }: { movie: Movie; poster?: boolean }
   </article>;
 }
 function MovieRail({ title, items, to, topTen = false }: { title: string; items: Movie[]; to?: string; topTen?: boolean }) {
-  const track = useRef<HTMLDivElement>(null);
+  const scroller = useRef<HTMLDivElement>(null);
   if (!items.length) return null;
-  const move = (direction: number) => track.current?.scrollBy({ left: direction * Math.max(400, track.current.clientWidth * 0.82), behavior: 'smooth' });
+  const move = (direction: number) => scroller.current?.scrollBy({ left: direction * Math.max(400, scroller.current.clientWidth * 0.82), behavior: 'smooth' });
   return <section className="nf-row">
     <div className="nf-row-head"><h2 className="nf-row-title">{to ? <Link to={to}><span>{title}</span><span className="nf-explore">Explore All <ChevronRight size={14} /></span></Link> : title}</h2>
       <div className="nf-rail-arrows"><button type="button" onClick={() => move(-1)} aria-label={`Previous ${title}`}><ChevronLeft size={20} /></button><button type="button" onClick={() => move(1)} aria-label={`Next ${title}`}><ChevronRight size={20} /></button></div>
     </div>
-    <div className={`nf-slider${topTen ? ' nf-top-ten' : ''}`}><div className="nf-track" ref={track}>
+    <div className={`nf-slider${topTen ? ' nf-top-ten' : ''}`} ref={scroller}><div className="nf-track">
       {items.map((movie, index) => <div className={`nf-cell${topTen ? ' nf-ten' : ''}`} key={movie.providerId + ':' + movie.externalId}>{topTen && <span className="nf-rank">{index + 1}</span>}<MovieCard movie={movie} poster={topTen} /></div>)}
     </div></div>
   </section>;
@@ -213,8 +219,10 @@ function HomePage() {
   }, []);
   useEffect(() => { const controller = new AbortController(); load(controller.signal); return () => controller.abort(); }, [load, retry]);
   const featured = data.trending.find(movie => movie.backdropUrl) ?? data.popular.find(movie => movie.backdropUrl) ?? null;
+  const featuredYear = featured ? movieYear(featured) : null;
+  const featuredRating = featured?.voteAverage ? Math.round(featured.voteAverage * 10) : null;
   return <div className="nf nf-bleed nf-home">
-    {featured ? <header className="nf-billboard">{featured.backdropUrl && <img className="nf-bb-art" src={featured.backdropUrl} alt="" fetchPriority="high" referrerPolicy="no-referrer" />}<div className="nf-bb-fade" /><div className="nf-bb-info"><p className="nf-bb-tag"><i />MOVIE</p><h1 className="nf-bb-title"><Link to={moviePath(featured)}>{featured.title}</Link></h1><div className="nf-bb-buttons"><Link to={watchPath(featured)} className="nf-btn play"><Play size={18} fill="currentColor" /> Play</Link><MyListButton movie={featured} /></div>{featured.overview && <p className="nf-bb-text">{featured.overview}</p>}</div></header> : loading ? <div className="nf-billboard nf-skel" /> : <div className="nf-top-space" />}
+    {featured ? <header className="nf-billboard">{featured.backdropUrl && <img className="nf-bb-art" src={featured.backdropUrl} alt="" fetchPriority="high" referrerPolicy="no-referrer" />}<div className="nf-bb-fade" /><div className="nf-bb-info"><p className="nf-bb-tag"><i />{data.trending.includes(featured) ? 'Trending this week' : 'Popular right now'}</p><h1 className="nf-bb-title"><Link to={moviePath(featured)}>{featured.title}</Link></h1>{(featuredRating || featuredYear) && <p className="nf-bb-meta">{featuredRating ? <b>{featuredRating}% rated</b> : null}{featuredYear ? <span>{featuredYear}</span> : null}{featured.originalLanguage ? <span className="nf-box">{featured.originalLanguage.toUpperCase()}</span> : null}</p>}{featured.overview && <p className="nf-bb-text">{featured.overview}</p>}<div className="nf-bb-buttons"><Link to={watchPath(featured)} className="nf-btn play"><Play size={18} fill="currentColor" /> Play</Link><Link to={moviePath(featured)} className="nf-btn info"><Info size={18} /> More info</Link><MyListButton movie={featured} /></div></div></header> : loading ? <div className="nf-billboard nf-skel" /> : <div className="nf-top-space" />}
     {error && <ErrorMessage message={error} retry={() => setRetry(value => value + 1)} />}
     {loading ? <LoadingRows /> : <div className="nf-rows">
       <MovieRail title="Top 10 Movies This Week" items={data.trending.slice(0, 10)} to="/movies/browse/trending" topTen />
